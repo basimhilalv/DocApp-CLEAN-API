@@ -13,6 +13,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Stripe;
+using System.Configuration;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -88,6 +89,8 @@ builder.Services.AddSingleton(s =>
     var account = new CloudinaryDotNet.Account(config.CloudName, config.ApiKey, config.ApiSecret);
     return new Cloudinary(account);
 });
+
+builder.Services.Configure<TwilioSetttings>(builder.Configuration.GetSection("Twilio"));
 
 
 builder.Services.AddScoped<IAuthService, AuthService>();

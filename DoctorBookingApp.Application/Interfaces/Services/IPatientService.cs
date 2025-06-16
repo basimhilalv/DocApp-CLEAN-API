@@ -18,5 +18,6 @@ namespace DoctorBookingApp.Application.Interfaces.Services
         Task<string> CreateStripePaymentIntent(Guid appointmentId);
         Task<string> MarkAppointmentAsPaid(string paymentIntentId, string transactionId);
         Task<string> MarkAppointmentAsCash(Guid appointmentId);
+        Task<string> GenerateVideoToken(Guid userId, Guid appointmentId);
     }
 }

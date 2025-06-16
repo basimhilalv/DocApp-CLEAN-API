@@ -10,6 +10,10 @@ using Stripe;
 using System.Net;
 using DoctorBookingApp.Infrastructure.SignalR;
 using DoctorBookingApp.Application.DTOs.PatientDto;
+using Twilio.Jwt.AccessToken;
+using Microsoft.Extensions.Options;
+using DoctorBookingApp.Infrastructure.Settings;
+using Token = Twilio.Jwt.AccessToken.Token;
 
 namespace DoctorBookingApp.Infrastructure.Services.PatientService
 {
@@ -19,13 +23,20 @@ namespace DoctorBookingApp.Infrastructure.Services.PatientService
         private readonly AppDbContext _context;
         private readonly Cloudinary _cloudinary;
         private readonly IHubContext<BookingHub> _hubContext;
+        private readonly IOptions<TwilioSetttings> _twiliosettings;
 
-        public PatientService(IMapper mapper, AppDbContext context, Cloudinary cloudinary, IHubContext<BookingHub> hubContext)
+        public PatientService(
+            IMapper mapper,
+            AppDbContext context,
+            Cloudinary cloudinary,
+            IHubContext<BookingHub> hubContext,
+            IOptions<TwilioSetttings> twiliosettings)
         {
             _mapper = mapper;
             _context = context;
             _cloudinary = cloudinary;
             _hubContext = hubContext;
+            _twiliosettings = twiliosettings;
         }
 
         public async Task<string> CreateStripePaymentIntent(Guid appointmentId)
@@ -305,6 +316,41 @@ namespace DoctorBookingApp.Infrastructure.Services.PatientService
                 await _context.SaveChangesAsync();
                 return "Profile Updated Successfully";
             }catch(Exception ex)
+            {
+                throw new Exception(ex.Message);
+            }
+        }
+
+        public async Task<string> GenerateVideoToken(Guid userId, Guid appointmentId)
+        {
+            try
+            {
+                var patient = await _context.Patients.FirstOrDefaultAsync(p => p.UserId == userId);
+                if (patient == null) throw new Exception("Patient profile not available");
+                var appointment = await _context.Appointments.FirstOrDefaultAsync(a => a.Id == appointmentId && a.PatientId == patient.Id);
+                if (appointment == null) throw new Exception("Appointment is not found");
+                if (appointment.PaymentStatus != "Paid") throw new Exception("Payment is not done");
+
+                var now = DateTime.UtcNow.TimeOfDay;
+                if (appointment.StartTime > now || appointment.EndTime < now) throw new Exception("Appointment time not yet started or has passed");
+
+                var identity = userId.ToString();
+                var roomName = appointmentId.ToString();
+
+                var videoGrant = new VideoGrant { Room =  roomName };
+                var grants = new HashSet<IGrant> { videoGrant };
+
+                var token = new Token(
+                    _twiliosettings.Value.AccountSid,
+                    _twiliosettings.Value.ApiKey,
+                    _twiliosettings.Value.ApiSecret,
+                    identity: identity,
+                    grants: grants
+                    );
+
+                return token.ToJwt();
+            }
+            catch(Exception ex)
             {
                 throw new Exception(ex.Message);
             }
