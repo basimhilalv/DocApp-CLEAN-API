@@ -19,6 +19,27 @@ namespace DoctorBookingApp.API.Controllers
         {
             _patientService = patientService;
         }
+        [Authorize(Roles ="Patient")]
+        [HttpGet("VideoToken")]
+        public async Task<IActionResult> getVideoToken(Guid appointmentId)
+        {
+            try
+            {
+                var userId = HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                if (userId is null)
+                {
+                    return Unauthorized(new ApiResponse<string>(401, "User is not authorized"));
+                }
+                Guid userIdguid = Guid.Parse(userId);
+                var result = await _patientService.GenerateVideoToken(userIdguid, appointmentId);
+                if (result is null) return BadRequest(new ApiResponse<string>(400, "Failed", null, "Operation Failed"));
+                return Ok(new ApiResponse<string>(200, "Video Token Generated", result));
+            }
+            catch(Exception ex)
+            {
+                return BadRequest(new ApiResponse<string>(400, "Failed", null, ex.Message));
+            }
+        }
         [Authorize(Roles = "Patient")]
         [HttpPost("createPaymentintent")]
         public async Task<IActionResult> CreateIntent(CreatePaymentDto payment)

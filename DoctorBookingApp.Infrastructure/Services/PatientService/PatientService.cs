@@ -331,8 +331,11 @@ namespace DoctorBookingApp.Infrastructure.Services.PatientService
                 if (appointment == null) throw new Exception("Appointment is not found");
                 if (appointment.PaymentStatus != "Paid") throw new Exception("Payment is not done");
 
-                var now = DateTime.UtcNow.TimeOfDay;
-                if (appointment.StartTime > now || appointment.EndTime < now) throw new Exception("Appointment time not yet started or has passed");
+                var now = DateTime.UtcNow;
+                Console.WriteLine(now);
+                var ISTDate = TimeZoneInfo.ConvertTimeFromUtc(now, TimeZoneInfo.FindSystemTimeZoneById("India Standard Time"));
+                Console.WriteLine(ISTDate);
+                if (appointment.StartTime > ISTDate.TimeOfDay || appointment.EndTime < ISTDate.TimeOfDay) throw new Exception("Appointment time not yet started or has passed");
 
                 var identity = userId.ToString();
                 var roomName = appointmentId.ToString();
