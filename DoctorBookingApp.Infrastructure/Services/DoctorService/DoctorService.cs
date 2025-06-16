@@ -6,8 +6,11 @@ using DoctorBookingApp.Application.DTOs.TimeSlotDto;
 using DoctorBookingApp.Application.Interfaces.Services;
 using DoctorBookingApp.Domain.Entities;
 using DoctorBookingApp.Infrastructure.Persistence;
+using DoctorBookingApp.Infrastructure.Settings;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using System.Net;
+using Twilio.Jwt.AccessToken;
 
 namespace DoctorBookingApp.Infrastructure.Services.DoctorService
 {
@@ -16,12 +19,14 @@ namespace DoctorBookingApp.Infrastructure.Services.DoctorService
         private readonly IMapper _mapper;
         private readonly AppDbContext _context;
         private readonly Cloudinary _cloudinary;
+        private readonly IOptions<TwilioSetttings> _twiliosettings;
 
-        public DoctorService(IMapper mapper, AppDbContext context, Cloudinary cloudinary)
+        public DoctorService(IMapper mapper, AppDbContext context, Cloudinary cloudinary, IOptions<TwilioSetttings> twiliosettings)
         {
             _mapper = mapper;
             _context = context;
             _cloudinary = cloudinary;
+            _twiliosettings = twiliosettings;
         }
         public async Task<string> GenerateTimeSlot(Guid userId, SetScheduleDto request)
         {
@@ -286,6 +291,44 @@ namespace DoctorBookingApp.Infrastructure.Services.DoctorService
                 if (!appointments.Any()) throw new Exception("Appointments not found");
                 return appointments;
             }catch(Exception ex)
+            {
+                throw new Exception(ex.Message);
+            }
+        }
+
+        public async Task<string> GenerateVideoToken(Guid userId, Guid appointmentId)
+        {
+            try
+            {
+                var doctor = await _context.Doctors.FirstOrDefaultAsync(u=> u.UserId == userId);
+                if (doctor == null) throw new Exception("Doctor profile not available");
+                var appointment = await _context.Appointments.FirstOrDefaultAsync(a => a.Id == appointmentId && a.DoctorId == doctor.Id);
+                if (appointment == null) throw new Exception("Appointment is not found");
+                if (appointment.PaymentStatus != "Paid") throw new Exception("Payment is not completed by patient");
+
+                var now = DateTime.UtcNow;
+                //Console.WriteLine(now);
+                var ISTDate = TimeZoneInfo.ConvertTimeFromUtc(now, TimeZoneInfo.FindSystemTimeZoneById("India Standard Time"));
+                //Console.WriteLine(ISTDate);
+                if (appointment.StartTime > ISTDate.TimeOfDay || appointment.EndTime < ISTDate.TimeOfDay) throw new Exception("Appointment time not yet started or has passed");
+
+                var identity = userId.ToString();
+                var roomName = appointmentId.ToString();
+
+                var videoGrant = new VideoGrant { Room = roomName };
+                var grants = new HashSet<IGrant> { videoGrant };
+
+                var token = new Token(
+                    _twiliosettings.Value.AccountSid,
+                    _twiliosettings.Value.ApiKey,
+                    _twiliosettings.Value.ApiSecret,
+                    identity: identity,
+                    grants: grants
+                    );
+
+                return token.ToJwt();
+            }
+            catch (Exception ex)
             {
                 throw new Exception(ex.Message);
             }
