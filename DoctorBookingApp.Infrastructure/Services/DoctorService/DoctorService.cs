@@ -333,5 +333,40 @@ namespace DoctorBookingApp.Infrastructure.Services.DoctorService
                 throw new Exception(ex.Message);
             }
         }
+
+        public async Task<IEnumerable<Message>> GetMessage(Guid userId1, Guid userId2)
+        {
+            try
+            {
+                var messages = await _context.Messages.Where(
+                    m => (m.SenderId == userId1 && m.RecieverId == userId2) || (m.SenderId == userId2 && m.RecieverId == userId1))
+                    .OrderBy(m => m.SentAt)
+                    .ToListAsync();
+                return messages;
+            }
+            catch(Exception ex) 
+            {
+                throw new Exception(ex.Message);
+            }
+        }
+
+        public async Task<Message> SendMessage(Guid userId1, Guid userId2, string message)
+        {
+            try
+            {
+                var messages = new Message
+                {
+                    SenderId = userId1,
+                    RecieverId = userId2,
+                    Content = message
+                };
+                _context.Messages.Add(messages);
+                await _context.SaveChangesAsync();
+                return messages;
+            }catch(Exception ex)
+            {
+                throw new Exception(ex.Message);
+            }
+        }
     }
 }

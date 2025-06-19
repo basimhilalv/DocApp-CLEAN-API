@@ -19,5 +19,7 @@ namespace DoctorBookingApp.Application.Interfaces.Services
         Task<string> MarkAppointmentAsPaid(string paymentIntentId, string transactionId);
         Task<string> MarkAppointmentAsCash(Guid appointmentId);
         Task<string> GenerateVideoToken(Guid userId, Guid appointmentId);
+        Task<IEnumerable<Message>> GetMessage(Guid userId1, Guid userId2);
+        Task<Message> SendMessage(Guid userId1, Guid userId2, string message);
     }
 }

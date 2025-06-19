@@ -19,6 +19,9 @@ namespace DoctorBookingApp.API.Controllers
         {
             _patientService = patientService;
         }
+        [Authorize(Roles = "Patient")]
+        [HttpPost("SentMsg")]
+        public async Task<IActionResult> sentMessage()
         [Authorize(Roles ="Patient")]
         [HttpGet("VideoToken")]
         public async Task<IActionResult> getVideoToken(Guid appointmentId)

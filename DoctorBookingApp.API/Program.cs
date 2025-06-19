@@ -9,6 +9,7 @@ using DoctorBookingApp.Infrastructure.Services.PatientService;
 using DoctorBookingApp.Infrastructure.Settings;
 using DoctorBookingApp.Infrastructure.SignalR;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
@@ -99,6 +100,7 @@ builder.Services.AddScoped<IAdminService, AdminService>();
 builder.Services.AddScoped<IPatientService, PatientService>();
 
 builder.Services.AddSignalR();
+builder.Services.AddSingleton<IUserIdProvider, NameUserIdProvider>();
 
 StripeConfiguration.ApiKey = builder.Configuration["Stripe:SecretKey"];
 
@@ -119,5 +121,6 @@ app.UseAuthorization();
 app.MapControllers();
 
 app.MapHub<BookingHub>("/bookingHub");
+app.MapHub<ChatHub>("/chatHub");
 
 app.Run();

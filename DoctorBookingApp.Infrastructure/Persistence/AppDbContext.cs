@@ -15,6 +15,7 @@ namespace DoctorBookingApp.Infrastructure.Persistence
         public DbSet<TimeSlot> TimeSlots { get; set; }
         public DbSet<Appointment> Appointments { get; set; }
         public DbSet<Role> Roles { get; set; }
+        public DbSet<Message> Messages { get; set; }
 
     }
 }
