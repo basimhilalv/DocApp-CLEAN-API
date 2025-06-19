@@ -1,4 +1,5 @@
 ﻿using DoctorBookingApp.API.AppResponse;
+using DoctorBookingApp.Application.DTOs.MessageDto;
 using DoctorBookingApp.Application.DTOs.PatientDto;
 using DoctorBookingApp.Application.DTOs.PaymentDto;
 using DoctorBookingApp.Application.Interfaces.Services;
@@ -21,7 +22,47 @@ namespace DoctorBookingApp.API.Controllers
         }
         [Authorize(Roles = "Patient")]
         [HttpPost("SentMsg")]
-        public async Task<IActionResult> sentMessage()
+        public async Task<IActionResult> sentMessage([FromBody] SendMessageDto request)
+        {
+            try
+            {
+                var userId = HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                if (userId is null)
+                {
+                    return Unauthorized(new ApiResponse<string>(401, "User is not authorized"));
+                }
+                Guid userIdguid = Guid.Parse(userId);
+                var result = await _patientService.SendMessage(userIdguid, request.ReceiverId, request.Message);
+                if (result is null) return BadRequest(new ApiResponse<string>(400, "Failed", null, "Operation Failed"));
+                return Ok(new ApiResponse<Message>(200, "Message Sent Successfully", result));
+            }
+            catch(Exception ex)
+            {
+                return BadRequest(new ApiResponse<string>(400, "Failed", null, ex.Message));
+            }
+        }
+        [Authorize(Roles ="Patient")]
+        [HttpGet("GetMsg/{userId1}")]
+        public async Task<IActionResult> GetMessages(Guid userId1)
+        {
+            try
+            {
+                var userId = HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                if (userId is null)
+                {
+                    return Unauthorized(new ApiResponse<string>(401, "User is not authorized"));
+                }
+                Guid userIdguid = Guid.Parse(userId);
+                var result = await _patientService.GetMessage(userIdguid, userId1);
+                if (result is null) return BadRequest(new ApiResponse<string>(400, "Failed", null, "Operation Failed"));
+                return Ok(new ApiResponse<IEnumerable<Message>>(200, "Messages retrieved successfully", result));
+            }
+            catch(Exception ex)
+            {
+                return BadRequest(new ApiResponse<string>(400, "Failed", null, ex.Message));
+            }
+        }
+
         [Authorize(Roles ="Patient")]
         [HttpGet("VideoToken")]
         public async Task<IActionResult> getVideoToken(Guid appointmentId)
