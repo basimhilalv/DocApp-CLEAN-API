@@ -43,8 +43,8 @@ namespace DoctorBookingApp.API.Controllers
             }
         }
         [Authorize(Roles = "Doctor")]
-        [HttpGet("GetMsg/{userId1}")]
-        public async Task<IActionResult> GetMessages(Guid userId1)
+        [HttpGet("GetAllMsg")]
+        public async Task<IActionResult> GetAllMessages()
         {
             try
             {
@@ -54,7 +54,7 @@ namespace DoctorBookingApp.API.Controllers
                     return Unauthorized(new ApiResponse<string>(401, "User is not authorized"));
                 }
                 Guid userIdguid = Guid.Parse(userId);
-                var result = await _doctorService.GetMessage(userIdguid, userId1);
+                var result = await _doctorService.GetMessage(userIdguid);
                 if (result is null) return BadRequest(new ApiResponse<string>(400, "Failed", null, "Operation Failed"));
                 return Ok(new ApiResponse<IEnumerable<Message>>(200, "Messages retrieved successfully", result));
             }

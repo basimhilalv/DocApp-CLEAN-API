@@ -334,12 +334,12 @@ namespace DoctorBookingApp.Infrastructure.Services.DoctorService
             }
         }
 
-        public async Task<IEnumerable<Message>> GetMessage(Guid userId1, Guid userId2)
+        public async Task<IEnumerable<Message>> GetMessage(Guid userId1)
         {
             try
             {
                 var messages = await _context.Messages.Where(
-                    m => (m.SenderId == userId1 && m.RecieverId == userId2) || (m.SenderId == userId2 && m.RecieverId == userId1))
+                    m => (m.SenderId == userId1) || (m.RecieverId == userId1))
                     .OrderBy(m => m.SentAt)
                     .ToListAsync();
                 return messages;

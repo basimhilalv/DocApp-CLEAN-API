@@ -1,6 +1,7 @@
 ﻿using DoctorBookingApp.API.AppResponse;
 using DoctorBookingApp.Application.Interfaces.Services;
 using DoctorBookingApp.Domain.Entities;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
@@ -15,6 +16,7 @@ namespace DoctorBookingApp.API.Controllers
         {
             _adminService = adminService;
         }
+        [Authorize(Roles ="Admin")]
         [HttpGet("GetUsers")]
         public async Task<IActionResult> getUsers()
         {
@@ -28,6 +30,7 @@ namespace DoctorBookingApp.API.Controllers
                 return BadRequest(new ApiResponse<string>(400, "Failed", null, ex.Message));
             }
         }
+        [Authorize(Roles = "Admin")]
         [HttpGet("GetDoctorList")]
         public async Task<IActionResult> getDoctorsList()
         {
@@ -42,6 +45,7 @@ namespace DoctorBookingApp.API.Controllers
                 return BadRequest(new ApiResponse<string>(400, "Failed", null, ex.Message));
             }
         }
+        [Authorize(Roles = "Admin")]
         [HttpGet("GetPatientList")]
         public async Task<IActionResult> getPatientList()
         {
@@ -56,6 +60,7 @@ namespace DoctorBookingApp.API.Controllers
                 return BadRequest(new ApiResponse<string>(400, "Failed", null, ex.Message));
             }
         }
+        [Authorize(Roles = "Admin")]
         [HttpPost("BlockOrUnblock")]
         public async Task<IActionResult> blockorunblock(Guid userId)
         {
@@ -70,6 +75,7 @@ namespace DoctorBookingApp.API.Controllers
                 return BadRequest(new ApiResponse<string>(400, "Failed", null, ex.Message));
             }
         }
+        [Authorize(Roles = "Admin")]
         [HttpPost("VerifyDoctor")]
         public async Task<IActionResult> verifyDoctor(Guid doctorId)
         {
@@ -84,6 +90,7 @@ namespace DoctorBookingApp.API.Controllers
                 return BadRequest(new ApiResponse<string>(400,"Failed",null, ex.Message));
             }
         }
+        [Authorize(Roles = "Admin")]
         [HttpPost("BlockDoctor")]
         public async Task<IActionResult> blockDoctor(Guid doctorId)
         {
