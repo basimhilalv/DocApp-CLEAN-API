@@ -132,6 +132,21 @@ namespace DoctorBookingApp.API.Controllers
                 return BadRequest(new ApiResponse<string>(400, "Failed", null, ex.Message));
             }
         }
+        [Authorize(Roles = "Patient")]
+        [HttpGet("doctorSearch")]
+        public async Task<IActionResult> getDoctorbyName(string DoctorName)
+        {
+            try
+            {
+                var result = await _patientService.GetDoctorByName(DoctorName);
+                if (result is null) return BadRequest(new ApiResponse<string>(400, "Failed", null, "Doctors not available"));
+                return Ok(new ApiResponse<IEnumerable<Doctor>>(200, "All Doctors retrieved", result));
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new ApiResponse<string>(400, "Failed", null, ex.Message));
+            }
+        }
         [Authorize(Roles ="Patient")]
         [HttpGet("GetTimeSlots")]
         public async Task<IActionResult> getTimeSlots(Guid doctorId)

@@ -393,5 +393,19 @@ namespace DoctorBookingApp.Infrastructure.Services.PatientService
                 throw new Exception(ex.Message);
             }
         }
+
+        public async Task<IEnumerable<Doctor>> GetDoctorByName(string doctorName)
+        {
+            try
+            {
+                var doctors = await _context.Doctors.Where(d => d.FullName.StartsWith(doctorName)).ToListAsync();
+                if (doctors.Count == 0) throw new Exception("No Doctors available");
+                return doctors;
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message);
+            }
+        }
     }
 }
